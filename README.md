@@ -1,30 +1,23 @@
 # AI PR Review Action
 
-AI-powered GitHub PR review with anti-hallucination rules, GitHub callout severity colors, and Mermaid flow diagrams.
-
-## Features
-
-- **Anti-hallucination rules** — prevents AI from inventing function signatures or flagging non-existent issues
-- **Severity callouts** — uses GitHub's native colored callouts: `[!CAUTION]` (red), `[!WARNING]` (yellow), `[!NOTE]` (blue)
-- **Mermaid diagrams** — auto-generates flow diagrams for every PR (sequenceDiagram for endpoints, flowchart for logic)
-- **Dual engine** — use OpenCode (free tier available) or direct API (OpenAI, Anthropic)
-- **Customizable prompt** — override the built-in prompt with your own review guidelines
+AI-powered PR review with anti-hallucination rules, severity callouts, and Mermaid diagrams. Supports OpenCode (free tier) and direct LLM APIs (OpenAI, Anthropic).
 
 ## Quick Start
 
-### Minimal setup (OpenCode engine)
+**1.** Create a secret at **Settings → Secrets and variables → Actions → New repository secret** with your API key.
+
+**2.** Add to your workflow:
+
+### OpenCode (free tier available)
 
 ```yaml
-# .github/workflows/review.yml
 name: AI PR Review
 on:
   pull_request:
     types: [opened, synchronize]
-
 permissions:
   pull-requests: write
   contents: read
-
 jobs:
   review:
     runs-on: ubuntu-latest
@@ -35,19 +28,9 @@ jobs:
           opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
 ```
 
-> **⚠️ Security Note:** The OpenCode engine may commit and push LLM-generated code directly to your branch. This requires `contents: write` permission. Use on non-default branches or draft PRs to prevent unintended changes to your main branch.
+> **⚠️ Warning:** OpenCode may commit and push LLM-generated code to your branch (`contents: write`). Use on non-default branches or draft PRs.
 
-### Direct Anthropic API (Haiku — fast, cheap, 200k context)
-
-```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.8
-        with:
-          engine: direct
-          model: claude-haiku-4-5-20251001
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-```
-
-### Direct OpenAI API (GPT-4.1 Mini — fast, cheap, 1M context)
+### Direct OpenAI
 
 ```yaml
       - uses: minhphu102003/ai-pr-review-action@v0.0.8
@@ -57,204 +40,69 @@ jobs:
           openai_api_key: ${{ secrets.OPENAI_API_KEY }}
 ```
 
-## Security
-
-> **IMPORTANT:** Always store API keys as [GitHub Actions secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions). Never hardcode keys in your workflow file.
-
-### Setting up secrets
-
-1. Go to your repo → **Settings** → **Secrets and variables** → **Actions**
-2. Click **New repository secret**
-3. Name: `OPENCODE_API_KEY` (or `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` for direct engine)
-4. Paste your API key as the value
-5. Click **Add secret**
+### Direct Anthropic
 
 ```yaml
-# CORRECT — keys stored as secrets
-with:
-  opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
-
-# WRONG — keys exposed in plain text
-with:
-  opencode_api_key: "sk-abc123..."
+      - uses: minhphu102003/ai-pr-review-action@v0.0.8
+        with:
+          engine: direct
+          model: claude-haiku-4-5-20251001
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
 
-The action automatically masks API key values in workflow logs. Keys are passed as environment variables to the LLM engine and are never printed or stored.
+## Security
 
-### Required Permissions
+> **Always store API keys as [GitHub Actions secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions). Never hardcode keys in your workflow file.**
+
+The action masks all API key values in workflow logs automatically.
 
 | Permission | Why |
 |------------|-----|
-| `contents: read` | Read PR files for review |
 | `pull-requests: write` | Post review comments |
-| `contents: write` | *(OpenCode engine)* Auto-commit LLM-generated changes |
-| `issues: write` | *(On-demand review)* Trigger review from issue comments |
+| `contents: read` | Read PR files |
+| `contents: write` | *(OpenCode only)* Auto-commit changes |
 
 ## Inputs
 
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
-| `engine` | No | `opencode` | LLM engine: `opencode` or `direct` |
-| `model` | No | *(auto)* | Model name (e.g. `opencode/mimo-v2.5-free`, `gpt-4.1-mini`, `claude-haiku-4-5-20251001`) |
-| `opencode_api_key` | If engine=opencode | - | OpenCode API key. **Store as GitHub secret, do not hardcode.** |
-| `openai_api_key` | If engine=direct | - | OpenAI API key (direct engine). **Store as GitHub secret, do not hardcode.** |
-| `openai_base_url` | No | - | Custom base URL for OpenAI-compatible API |
-| `anthropic_api_key` | If engine=direct | - | Anthropic API key (direct engine). **Store as GitHub secret, do not hardcode.** |
-| `anthropic_base_url` | No | - | Custom base URL for Anthropic-compatible API |
-| `github_token` | Yes | `${{ github.token }}` | GitHub token for posting comments |
-| `prompt_file` | No | *(built-in)* | Path to custom prompt file in your repo |
-| `exclude` | No | - | Comma-separated glob patterns to exclude (e.g. `docs/**,*.md`). *Direct engine only.* |
-| `update_comment` | No | `true` | Update existing review comment instead of creating a new one. *Direct engine only.* |
-| `share` | No | `false` | Share OpenCode session link in PR comment. *OpenCode engine only.* |
+| `engine` | No | `opencode` | `opencode` or `direct` |
+| `model` | No | *(auto)* | Model name |
+| `opencode_api_key` | If opencode | - | OpenCode API key (secret) |
+| `openai_api_key` | If direct | - | OpenAI API key (secret) |
+| `openai_base_url` | No | - | Custom OpenAI-compatible URL |
+| `anthropic_api_key` | If direct | - | Anthropic API key (secret) |
+| `anthropic_base_url` | No | - | Custom Anthropic-compatible URL |
+| `github_token` | Yes | `${{ github.token }}` | GitHub token |
+| `prompt_file` | No | *(built-in)* | Custom prompt file path |
+| `exclude` | No | - | Glob patterns to exclude (direct only) |
+| `update_comment` | No | `true` | Update existing comment (direct only) |
+| `share` | No | `false` | Share OpenCode session link (opencode only) |
 
-### Default models per engine
-
-| Engine | Default model |
-|--------|--------------|
-| `opencode` | `opencode/mimo-v2.5-free` |
-| `direct` (OpenAI) | `gpt-4.1-mini` |
-| `direct` (Anthropic) | `claude-haiku-4-5-20251001` |
+**Defaults:** `opencode` → `opencode/mimo-v2.5-free`, `direct` (OpenAI) → `gpt-4.1-mini`, `direct` (Anthropic) → `claude-haiku-4-5-20251001`
 
 ## Compatible APIs
 
-Use `openai_base_url` or `anthropic_base_url` to connect to any OpenAI/Anthropic-compatible provider:
+Use `openai_base_url` or `anthropic_base_url` for any compatible provider:
 
-**OpenRouter:**
-```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.8
-        with:
-          engine: direct
-          model: anthropic/claude-3.5-haiku
-          openai_api_key: ${{ secrets.OPENROUTER_API_KEY }}
-          openai_base_url: https://openrouter.ai/api/v1
-```
-
-**Groq:**
-```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.8
-        with:
-          engine: direct
-          model: llama-3.1-70b-versatile
-          openai_api_key: ${{ secrets.GROQ_API_KEY }}
-          openai_base_url: https://api.groq.com/openai/v1
-```
-
-**Together AI:**
-```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.8
-        with:
-          engine: direct
-          model: meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo
-          openai_api_key: ${{ secrets.TOGETHER_API_KEY }}
-          openai_base_url: https://api.together.xyz/v1
-```
-
-**Ollama (local):**
-```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.8
-        with:
-          engine: direct
-          model: llama3.1
-          openai_api_key: ollama  # placeholder — Ollama requires no real key
-          openai_base_url: http://localhost:11434/v1
-```
-
-## Custom Prompt
-
-The action includes a built-in prompt optimized for thorough code review. You can override it:
-
-**Option 1:** Place your prompt at `.github/prompts/review.txt` in your repo (auto-detected).
-
-**Option 2:** Specify a custom path:
-```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.8
-        with:
-          prompt_file: my-custom-review-prompt.txt
-          opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
-```
-
-### Prompt resolution order
-
-1. `prompt_file` input (if set and file exists)
-2. `.github/prompts/review.txt` in caller's repo (if exists)
-3. Built-in prompt (`prompts/review.txt` in this action)
+| Provider | `openai_base_url` | Example model |
+|----------|-------------------|---------------|
+| OpenRouter | `https://openrouter.ai/api/v1` | `anthropic/claude-3.5-haiku` |
+| Groq | `https://api.groq.com/openai/v1` | `llama-3.1-70b-versatile` |
+| Together AI | `https://api.together.xyz/v1` | `meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo` |
+| Ollama | `http://localhost:11434/v1` | `llama3.1` |
 
 ## On-demand Review
 
-Trigger a re-review by commenting `/oc` or `/review` on a PR:
+Comment `/oc` or `/review` on a PR to trigger re-review. Requires `issues: write` permission. See [workflow example](https://github.com/minhphu102003/ai-pr-review-action/blob/main/action.yml).
 
-```yaml
-# .github/workflows/review.yml
-name: AI PR Review
-on:
-  pull_request:
-    types: [opened, synchronize]
-  issue_comment:
-    types: [created]
-  pull_request_review_comment:
-    types: [created]
+## Advanced
 
-permissions:
-  contents: read
-  pull-requests: write
-  issues: write
+**Custom prompt:** Place at `.github/prompts/review.txt` (auto-detected) or set `prompt_file` input.
 
-jobs:
-  auto-review:
-    if: github.event_name == 'pull_request' && !github.event.pull_request.draft
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: minhphu102003/ai-pr-review-action@v0.0.8
-        with:
-          opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
+**Fork PRs:** Default `github.token` is read-only on forks. Use `pull_request_target` — see [security implications](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/).
 
-  comment-review:
-    if: >-
-      github.event_name != 'pull_request' &&
-      github.event.comment.user.type != 'Bot' &&
-      (github.event.comment.body == '/oc' ||
-       github.event.comment.body == '/review' ||
-       startsWith(github.event.comment.body, '/oc ') ||
-       startsWith(github.event.comment.body, '/review ')) &&
-      (github.event.issue.pull_request ||
-       github.event_name == 'pull_request_review_comment')
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: minhphu102003/ai-pr-review-action@v0.0.8
-        with:
-          opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
-```
-
-## Review Output
-
-The review comment uses GitHub callout syntax for visual severity:
-
-- `[!CAUTION]` (red border) — Critical bugs, security issues
-- `[!WARNING]` (yellow border) — Warnings, potential issues
-- `[!NOTE]` (blue border) — Suggestions, improvements
-
-Each issue includes the problem code and a suggested fix, plus a Mermaid diagram showing the affected flow.
-
-## Cost Considerations
-
-The action calls a paid LLM API on every trigger. To control costs:
-
-- Use free-tier models: `opencode/mimo-v2.5-free` (OpenCode engine)
-- Use lightweight models: `gpt-4.1-mini`, `claude-haiku-4-5-20251001`
-- Filter paths to avoid reviewing docs/lock files: add `paths-ignore: ['**/*.md', '**/package-lock.json']` to your workflow
-- The `synchronize` event triggers on every push — consider removing it if you only want initial reviews
-
-## Fork PRs
-
-When a PR is opened from a fork, the default `github.token` has read-only permissions and cannot post comments. Use `pull_request_target` instead of `pull_request` for fork PRs, but be aware of the [security implications](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/).
-
-## Requirements
-
-- GitHub Actions runner (ubuntu-latest)
-- Python 3.10+ (for direct engine only — pre-installed on GitHub-hosted runners)
-- API key for your chosen engine
+**Cost control:** Use free-tier models (`opencode/mimo-v2.5-free`), lightweight models (`gpt-4.1-mini`), or add `paths-ignore` to skip docs/lock files.
 
 ## License
 
@@ -262,9 +110,4 @@ When a PR is opened from a fork, the default `github.token` has read-only permis
 
 ## Contributing
 
-Contributions are welcome! Please read:
-
-- [Contributing Guide](CONTRIBUTING.md) — how to submit changes
-- [Code of Conduct](CODE_OF_CONDUCT.md) — community standards
-- [Security Policy](SECURITY.md) — report vulnerabilities
-- [Changelog](CHANGELOG.md) — version history
+- [Contributing Guide](CONTRIBUTING.md) | [Code of Conduct](CODE_OF_CONDUCT.md) | [Security Policy](SECURITY.md) | [Changelog](CHANGELOG.md)
