@@ -14,8 +14,18 @@ import time
 import urllib.error
 import urllib.request
 
-HTTP_TIMEOUT = 120
+HTTP_TIMEOUT = int(os.environ.get("HTTP_TIMEOUT", "120"))
 REVIEW_SIGNATURE = "*AI Review by ai-pr-review-action*"
+
+
+def sanitize_review(text: str) -> str:
+    """Sanitize LLM output before posting as GitHub comment."""
+    import re
+    # Strip @mentions to prevent unintended notifications
+    text = re.sub(r'(?<!\w)@(\w+)', r'`\@\1`', text)
+    # Strip markdown image tags with external URLs (tracking pixels)
+    text = re.sub(r'!\[([^\]]*)\]\(https?://[^\)]+\)', r'[image: \1]', text)
+    return text
 
 
 def get_env(name: str, required: bool = False) -> str:
@@ -26,9 +36,11 @@ def get_env(name: str, required: bool = False) -> str:
     return val
 
 
-def safe_request(url: str, data: bytes | None = None, headers: dict | None = None, max_retries: int = 3) -> dict:
+def safe_request(url: str, data: bytes | None = None, headers: dict | None = None, method: str | None = None, max_retries: int = 3) -> dict:
     """HTTP request with error handling, timeout, and retry for transient errors."""
-    req = urllib.request.Request(url, data=data, headers=headers or {}, method="POST" if data else "GET")
+    if method is None:
+        method = "POST" if data else "GET"
+    req = urllib.request.Request(url, data=data, headers=headers or {}, method=method)
 
     for attempt in range(max_retries + 1):
         try:
@@ -135,7 +147,7 @@ def get_pr_diff(owner: str, repo: str, pr_number: int, token: str) -> str:
     """Get PR diff via GitHub API."""
     url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
     headers = {
-        "Authorization": f"token {token}",
+        "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github.v3.diff",
         "User-Agent": "ai-pr-review-action",
     }
@@ -164,7 +176,7 @@ def get_pr_files(owner: str, repo: str, pr_number: int, token: str) -> list[dict
             break
         url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/files?per_page=100&page={page}"
         headers = {
-            "Authorization": f"token {token}",
+            "Authorization": f"Bearer {token}",
             "Accept": "application/vnd.github.v3+json",
             "User-Agent": "ai-pr-review-action",
         }
@@ -340,7 +352,7 @@ def find_existing_comment(owner: str, repo: str, pr_number: int, token: str) -> 
     """Find existing review comment by signature. Returns comment ID or None."""
     url = f"https://api.github.com/repos/{owner}/{repo}/issues/{pr_number}/comments?per_page=100"
     headers = {
-        "Authorization": f"token {token}",
+        "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github.v3+json",
         "User-Agent": "ai-pr-review-action",
     }
@@ -355,7 +367,7 @@ def update_comment(owner: str, repo: str, comment_id: int, token: str, body: str
     """Update an existing comment."""
     url = f"https://api.github.com/repos/{owner}/{repo}/issues/comments/{comment_id}"
     headers = {
-        "Authorization": f"token {token}",
+        "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github.v3+json",
         "User-Agent": "ai-pr-review-action",
     }
@@ -373,13 +385,13 @@ def post_comment(owner: str, repo: str, pr_number: int, token: str, body: str, u
             return
     url = f"https://api.github.com/repos/{owner}/{repo}/issues/{pr_number}/comments"
     headers = {
-        "Authorization": f"token {token}",
+        "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github.v3+json",
         "User-Agent": "ai-pr-review-action",
     }
     payload = json.dumps({"body": body}).encode("utf-8")
     result = safe_request(url, data=payload, headers=headers)
-    print(f"Review comment posted: {result.get('html_url', 'ok')}")
+    print(f"Review comment posted: {result.get('html_url', 'ok')} (id: {result.get('id', '?')})")
 
 
 def main():
@@ -398,7 +410,9 @@ def main():
     print(f"Diff size: {len(diff)} chars")
 
     # Filter excluded files and binary files
-    files = get_pr_files(owner, repo, pr_number, token) if exclude else []
+    files = get_pr_files(owner, repo, pr_number, token)
+    if exclude and not files:
+        print("WARNING: exclude patterns set but no files returned from API. Patterns may not apply.", file=sys.stderr)
     diff = filter_diff(diff, files, exclude)
     print(f"Diff size after filtering: {len(diff)} chars")
 
@@ -428,7 +442,8 @@ def main():
 
     print(f"Review length: {len(review)} chars")
 
-    # Post comment
+    # Sanitize and post comment
+    review = sanitize_review(review)
     post_comment(owner, repo, pr_number, token, review, update_existing=update_existing)
 
 
@@ -436,7 +451,7 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        sys.exit(1)
+        sys.exit(130)
     except Exception as e:
         print(f"Unexpected error: {type(e).__name__}: {e}", file=sys.stderr)
         sys.exit(1)
