@@ -61,6 +61,14 @@ jobs:
 
 > **IMPORTANT:** Always store API keys as [GitHub Actions secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions). Never hardcode keys in your workflow file.
 
+### Setting up secrets
+
+1. Go to your repo → **Settings** → **Secrets and variables** → **Actions**
+2. Click **New repository secret**
+3. Name: `OPENCODE_API_KEY` (or `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` for direct engine)
+4. Paste your API key as the value
+5. Click **Add secret**
+
 ```yaml
 # CORRECT — keys stored as secrets
 with:
