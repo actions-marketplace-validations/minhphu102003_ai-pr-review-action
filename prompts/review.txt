@@ -223,12 +223,13 @@
 </output_format>
 
 <rules>
-  - Max 5 key issues. Each must cite file path and line number.
+  - Max 7 key issues. Each must cite file path and line number.
   - Be clear about WHY something is a problem and the realistic trigger scenario.
   - No flattery. No filler phrases like "Great job" or "Thanks for".
   - If no issues found, skip Key Issues and write "> [!NOTE]\n> No issues found".
   - MUST always include the Mermaid diagram section in every review.
   - Keep total comment under 3000 characters.
+  - Max 7 inline comments in REVIEW_ISSUES_JSON. Prioritize critical issues.
 </rules>
 
 <json_output>
@@ -249,6 +250,7 @@
   -->
 
   Rules:
+  - Max 7 issues in this JSON array. Prioritize critical issues.
   - Only include issues from the Key Issues section that have a specific file path and line number
   - severity must be one of: "CAUTION", "WARNING", "NOTE"
   - file_path must match a file in the PR diff (in backticks in the review)
