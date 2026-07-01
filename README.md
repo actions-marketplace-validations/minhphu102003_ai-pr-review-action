@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: minhphu102003/ai-pr-review-action@v0.0.19
+      - uses: minhphu102003/ai-pr-review-action@v0.0.20
         with:
           opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
 ```
@@ -38,7 +38,7 @@ jobs:
 ### Direct OpenAI
 
 ```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.19
+      - uses: minhphu102003/ai-pr-review-action@v0.0.20
         with:
           engine: direct
           model: gpt-4.1-mini
@@ -48,7 +48,7 @@ jobs:
 ### Direct Anthropic
 
 ```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.19
+      - uses: minhphu102003/ai-pr-review-action@v0.0.20
         with:
           engine: direct
           model: claude-haiku-4-5-20251001
@@ -102,6 +102,12 @@ Use `openai_base_url` or `anthropic_base_url` for any compatible provider:
 ## On-demand Review
 
 Comment `/oc` or `/review` on a PR to trigger re-review. Requires `issues: write` permission. See [workflow example](https://github.com/minhphu102003/ai-pr-review-action/blob/main/action.yml).
+
+## Auto-Reply to Comments
+
+The bot automatically detects user replies to inline review comments and generates contextual responses. The LLM decides whether to reply — it handles debates, clarification questions, and skips "fixed"/"done" replies.
+
+Unresolved threads are injected as context to prevent re-raising already discussed issues.
 
 ## Advanced
 
