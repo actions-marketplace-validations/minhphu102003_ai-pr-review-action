@@ -106,7 +106,7 @@ Comment `/oc` or `/review` on a PR to trigger re-review. Requires `issues: write
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) — This action is provided "as is" without warranty of any kind. Use at your own risk.
 
 ## Contributing
 
