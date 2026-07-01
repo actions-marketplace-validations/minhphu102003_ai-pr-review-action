@@ -1,0 +1,89 @@
+name: 'AI PR Review'
+description: 'AI-powered PR review with anti-hallucination rules, severity callouts, and Mermaid diagrams. Supports OpenCode and direct LLM APIs (OpenAI, Anthropic).'
+author: 'minhphu102003'
+
+branding:
+  icon: 'check-circle'
+  color: 'green'
+
+inputs:
+  engine:
+    description: 'LLM engine to use: opencode or direct'
+    required: false
+    default: 'opencode'
+  model:
+    description: 'Model name (e.g. opencode/mimo-v2.5-free, gpt-4o, claude-sonnet-4-20250514)'
+    required: false
+    default: ''
+  opencode_api_key:
+    description: 'API key for OpenCode engine'
+    required: false
+    default: ''
+  openai_api_key:
+    description: 'OpenAI API key (for direct engine)'
+    required: false
+    default: ''
+  anthropic_api_key:
+    description: 'Anthropic API key (for direct engine)'
+    required: false
+    default: ''
+  github_token:
+    description: 'GitHub token for posting review comments'
+    required: true
+    default: ${{ github.token }}
+  prompt_file:
+    description: 'Path to custom prompt file in your repo (overrides built-in prompt)'
+    required: false
+    default: ''
+  exclude:
+    description: 'Glob patterns to exclude from review (comma-separated)'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - id: resolve-prompt
+      shell: bash
+      run: |
+        PROMPT_PATH=""
+        if [ -n "${{ inputs.prompt_file }}" ] && [ -f "${{ inputs.prompt_file }}" ]; then
+          PROMPT_PATH="${{ inputs.prompt_file }}"
+          echo "Using custom prompt: $PROMPT_PATH"
+        elif [ -f ".github/prompts/review.txt" ]; then
+          PROMPT_PATH=".github/prompts/review.txt"
+          echo "Using repo prompt: $PROMPT_PATH"
+        else
+          PROMPT_PATH="${{ github.action_path }}/prompts/review.txt"
+          echo "Using built-in prompt: $PROMPT_PATH"
+        fi
+        {
+          echo 'PROMPT<<EOF'
+          cat "$PROMPT_PATH"
+          echo EOF
+        } >> "$GITHUB_OUTPUT"
+
+    # Engine: OpenCode (default)
+    - name: Review with OpenCode
+      if: inputs.engine == 'opencode'
+      uses: anomalyco/opencode/github@latest
+      env:
+        OPENCODE_API_KEY: ${{ inputs.opencode_api_key }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+      with:
+        model: ${{ inputs.model || 'opencode/mimo-v2.5-free' }}
+        use_github_token: true
+        prompt: ${{ steps.resolve-prompt.outputs.PROMPT }}
+
+    # Engine: Direct LLM API (OpenAI or Anthropic)
+    - name: Review with direct LLM API
+      if: inputs.engine == 'direct'
+      shell: bash
+      env:
+        OPENAI_API_KEY: ${{ inputs.openai_api_key }}
+        ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
+        MODEL: ${{ inputs.model }}
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        EXCLUDE: ${{ inputs.exclude }}
+        PROMPT: ${{ steps.resolve-prompt.outputs.PROMPT }}
+      run: python3 "${{ github.action_path }}/scripts/review_direct.py"
