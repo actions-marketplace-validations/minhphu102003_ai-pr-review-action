@@ -2,10 +2,12 @@
 
 ## v0.0.19
 
-- Add context files support: auto-detect architecture docs, CLAUDE.md, README
+- Add context files support: auto-detect architecture docs, CLAUDE.md, AGENTS.md, SOUL.md, MEMORY.md, README
 - User can specify context files via `context_files` input (comma-separated)
 - Smart budget: context files only fetched when diff < 70K chars (15K budget)
 - LLM receives context in `<context>` block alongside the diff
+- Add inline review comments for OpenCode engine (post-processing step)
+- Only warn for user-specified context paths, not auto-detect
 
 ## v0.0.18
 
