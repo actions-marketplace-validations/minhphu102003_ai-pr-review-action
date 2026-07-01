@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.0.13
+
+- Revert `reactions: write` permission — not a valid GitHub Actions permission
+
 ## v0.0.12
 
 - Add "What This PR Does" section to review output format
