@@ -35,7 +35,7 @@ jobs:
           opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
 ```
 
-> **Note:** The OpenCode engine may commit and push changes to your branch. For safety, use on non-default branches or draft PRs.
+> **⚠️ Security Note:** The OpenCode engine may commit and push LLM-generated code directly to your branch. This requires `contents: write` permission. Use on non-default branches or draft PRs to prevent unintended changes to your main branch.
 
 ### Direct Anthropic API (Haiku — fast, cheap, 200k context)
 
@@ -57,16 +57,41 @@ jobs:
           openai_api_key: ${{ secrets.OPENAI_API_KEY }}
 ```
 
+## Security
+
+> **IMPORTANT:** Always store API keys as [GitHub Actions secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions). Never hardcode keys in your workflow file.
+
+```yaml
+# CORRECT — keys stored as secrets
+with:
+  opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
+
+# WRONG — keys exposed in plain text
+with:
+  opencode_api_key: "sk-abc123..."
+```
+
+The action automatically masks API key values in workflow logs. Keys are passed as environment variables to the LLM engine and are never printed or stored.
+
+### Required Permissions
+
+| Permission | Why |
+|------------|-----|
+| `contents: read` | Read PR files for review |
+| `pull-requests: write` | Post review comments |
+| `contents: write` | *(OpenCode engine)* Auto-commit LLM-generated changes |
+| `issues: write` | *(On-demand review)* Trigger review from issue comments |
+
 ## Inputs
 
 | Input | Required | Default | Description |
 |-------|----------|---------|-------------|
 | `engine` | No | `opencode` | LLM engine: `opencode` or `direct` |
-| `model` | No | *(auto)* | Model name (e.g. `gpt-4.1-mini`, `claude-haiku-4-5-20251001`) |
-| `opencode_api_key` | If engine=opencode | - | OpenCode API key (passed as env var to OpenCode CLI) |
-| `openai_api_key` | If engine=direct | - | OpenAI API key |
+| `model` | No | *(auto)* | Model name (e.g. `opencode/mimo-v2.5-free`, `gpt-4.1-mini`, `claude-haiku-4-5-20251001`) |
+| `opencode_api_key` | If engine=opencode | - | OpenCode API key. **Store as GitHub secret, do not hardcode.** |
+| `openai_api_key` | If engine=direct | - | OpenAI API key (direct engine). **Store as GitHub secret, do not hardcode.** |
 | `openai_base_url` | No | - | Custom base URL for OpenAI-compatible API |
-| `anthropic_api_key` | If engine=direct | - | Anthropic API key |
+| `anthropic_api_key` | If engine=direct | - | Anthropic API key (direct engine). **Store as GitHub secret, do not hardcode.** |
 | `anthropic_base_url` | No | - | Custom base URL for Anthropic-compatible API |
 | `github_token` | Yes | `${{ github.token }}` | GitHub token for posting comments |
 | `prompt_file` | No | *(built-in)* | Path to custom prompt file in your repo |
@@ -122,7 +147,7 @@ Use `openai_base_url` or `anthropic_base_url` to connect to any OpenAI/Anthropic
         with:
           engine: direct
           model: llama3.1
-          openai_api_key: ollama
+          openai_api_key: ollama  # placeholder — Ollama requires no real key
           openai_base_url: http://localhost:11434/v1
 ```
 
@@ -222,22 +247,6 @@ When a PR is opened from a fork, the default `github.token` has read-only permis
 - GitHub Actions runner (ubuntu-latest)
 - Python 3.10+ (for direct engine only — pre-installed on GitHub-hosted runners)
 - API key for your chosen engine
-
-## Security
-
-> **IMPORTANT:** Always store API keys as [GitHub Actions secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions). Never hardcode keys in your workflow file.
-
-```yaml
-# CORRECT — keys stored as secrets
-with:
-  opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
-
-# WRONG — keys exposed in plain text
-with:
-  opencode_api_key: "sk-abc123..."
-```
-
-The action automatically masks API key values in workflow logs. Keys are passed as environment variables to the LLM engine and are never printed or stored.
 
 ## License
 

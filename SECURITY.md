@@ -34,13 +34,24 @@ If you discover a security vulnerability, please report it responsibly.
 
 This action:
 
-- Uses `contents: read` and `pull-requests: write` permissions only
-- Passes all user inputs through environment variables (never inline in shell)
+- Passes all API keys through environment variables (never inline in shell commands)
+- Masks API key values in workflow logs via `::add-mask::`
 - Validates API responses before processing
 - Does not store or log API keys
 - Uses HTTPS for all API calls
 
+### Required Permissions
+
+| Permission | Engine | Why |
+|------------|--------|-----|
+| `contents: read` | Both | Read PR files for review |
+| `pull-requests: write` | Both | Post review comments |
+| `contents: write` | OpenCode | Auto-commit LLM-generated changes |
+| `issues: write` | On-demand | Trigger review from issue/PR comments |
+
 ### Known Risks
 
 - **LLM output**: The action posts raw LLM output as PR comments. While `@mentions` are sanitized, prompt injection through diff content is theoretically possible.
-- **API keys**: Users should use GitHub Secrets for all API keys, never hardcode them.
+- **Auto-commit (OpenCode engine)**: The OpenCode engine may commit and push LLM-generated code to your branch. Use on non-default branches.
+- **API keys**: Users must use GitHub Secrets for all API keys. Never hardcode keys in workflow files.
+- **Third-party dependency**: The OpenCode engine uses [`anomalyco/opencode/github@v1.17.12`](https://github.com/anomalyco/opencode).
