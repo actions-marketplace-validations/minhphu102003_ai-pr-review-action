@@ -259,7 +259,8 @@
 </json_output>
 
 <reply_output>
-  After the REVIEW_ISSUES_JSON block, if there are genuine debates to address, append a reply JSON block.
+  CRITICAL: If a <user_replies> block exists with user questions or debates, you MUST generate replies.
+  After the REVIEW_ISSUES_JSON block, append a reply JSON block.
   Wrap it in an HTML comment: <!-- REVIEW_REPLIES_JSON ... -->
 
   Format:
@@ -274,13 +275,11 @@
 
   Rules:
   - comment_id is the bot's original comment ID (provided in the <user_replies> context)
-  - ONLY reply to genuine debates — do NOT reply if user already fixed/resolved the issue
+  - You MUST reply to every user question or debate in <user_replies>
+  - Skip only if user explicitly says "fixed", "done", "resolved"
   - Be concise, professional, and constructive
   - If user has valid reasoning, acknowledge: "Good point, I agree this is acceptable."
   - If user asks for clarification, explain the concern clearly
   - If user is wrong, explain politely with evidence
-  - If no genuine debates to address, omit this block entirely
-  - If user is wrong, explain politely with evidence
-  - If no user replies to address, omit this block entirely
   - This JSON block is for machine parsing only
 </reply_output>
