@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: minhphu102003/ai-pr-review-action@v0.0.2
+      - uses: minhphu102003/ai-pr-review-action@v0.0.3
         with:
           opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
 ```
@@ -38,7 +38,7 @@ jobs:
 ### Direct Anthropic API (Haiku — fast, cheap, 200k context)
 
 ```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.2
+      - uses: minhphu102003/ai-pr-review-action@v0.0.3
         with:
           engine: direct
           model: claude-haiku-4-5-20251001
@@ -48,7 +48,7 @@ jobs:
 ### Direct OpenAI API (GPT-4.1 Mini — fast, cheap, 128k context)
 
 ```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.2
+      - uses: minhphu102003/ai-pr-review-action@v0.0.3
         with:
           engine: direct
           model: gpt-4.1-mini
@@ -69,6 +69,7 @@ jobs:
 | `github_token` | Yes | `${{ github.token }}` | GitHub token for posting comments |
 | `prompt_file` | No | *(built-in)* | Path to custom prompt file in your repo |
 | `exclude` | No | - | Comma-separated glob patterns to exclude (e.g. `docs/**,*.md`) |
+| `update_comment` | No | `true` | Update existing review comment instead of creating a new one |
 
 ### Default models per engine
 
@@ -84,7 +85,7 @@ Use `openai_base_url` or `anthropic_base_url` to connect to any OpenAI/Anthropic
 
 **OpenRouter:**
 ```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.2
+      - uses: minhphu102003/ai-pr-review-action@v0.0.3
         with:
           engine: direct
           model: anthropic/claude-3.5-haiku
@@ -94,7 +95,7 @@ Use `openai_base_url` or `anthropic_base_url` to connect to any OpenAI/Anthropic
 
 **Groq:**
 ```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.2
+      - uses: minhphu102003/ai-pr-review-action@v0.0.3
         with:
           engine: direct
           model: llama-3.1-70b-versatile
@@ -104,7 +105,7 @@ Use `openai_base_url` or `anthropic_base_url` to connect to any OpenAI/Anthropic
 
 **Together AI:**
 ```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.2
+      - uses: minhphu102003/ai-pr-review-action@v0.0.3
         with:
           engine: direct
           model: meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo
@@ -114,7 +115,7 @@ Use `openai_base_url` or `anthropic_base_url` to connect to any OpenAI/Anthropic
 
 **Ollama (local):**
 ```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.2
+      - uses: minhphu102003/ai-pr-review-action@v0.0.3
         with:
           engine: direct
           model: llama3.1
@@ -130,7 +131,7 @@ The action includes a built-in prompt optimized for thorough code review. You ca
 
 **Option 2:** Specify a custom path:
 ```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.2
+      - uses: minhphu102003/ai-pr-review-action@v0.0.3
         with:
           prompt_file: my-custom-review-prompt.txt
           opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
@@ -169,7 +170,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: minhphu102003/ai-pr-review-action@v0.0.2
+      - uses: minhphu102003/ai-pr-review-action@v0.0.3
         with:
           opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
 
@@ -185,7 +186,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: minhphu102003/ai-pr-review-action@v0.0.2
+      - uses: minhphu102003/ai-pr-review-action@v0.0.3
         with:
           opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
 ```
@@ -203,7 +204,7 @@ Each issue includes the problem code and a suggested fix, plus a Mermaid diagram
 ## Requirements
 
 - GitHub Actions runner (ubuntu-latest)
-- Python 3 (for direct engine only — pre-installed on runners)
+- Python 3.10+ (for direct engine only — pre-installed on GitHub-hosted runners)
 - API key for your chosen engine
 
 ## License
