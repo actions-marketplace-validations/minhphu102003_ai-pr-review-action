@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.0.11
+
+- Add `reactions: write` permission to README and SECURITY.md (required by OpenCode engine)
+
 ## v0.0.10
 
 - Add "Free" to marketplace description for search discoverability

@@ -46,6 +46,7 @@ This action:
 |------------|--------|-----|
 | `contents: read` | Both | Read PR files for review |
 | `pull-requests: write` | Both | Post review comments |
+| `reactions: write` | OpenCode | Manage 👀 reactions during review |
 | `contents: write` | OpenCode | Auto-commit LLM-generated changes |
 | `issues: write` | On-demand | Trigger review from issue/PR comments |
 
