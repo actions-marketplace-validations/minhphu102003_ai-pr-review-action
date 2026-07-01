@@ -27,7 +27,7 @@ query($owner: String!, $repo: String!, $pr: Int!, $after: String) {
           id isResolved isOutdated path line
           comments(first: 20) {
             nodes {
-              id body author { login } createdAt path line
+              id databaseId body author { login } createdAt path line
             }
           }
         }
@@ -70,6 +70,7 @@ def fetch_unresolved_threads(owner: str, repo: str, pr_number: int, token: str) 
             comments = [
                 {
                     "id": c["id"],
+                    "database_id": c["databaseId"],
                     "body": c["body"],
                     "author": c["author"]["login"],
                     "created_at": c["createdAt"],
@@ -128,7 +129,7 @@ def find_user_replies(threads: list[dict]) -> list[dict]:
 
         replies.append({
             "thread_id": thread["id"],
-            "comment_id": bot_comment["id"],
+            "comment_id": bot_comment["database_id"],
             "path": thread["path"],
             "line": thread["line"],
             "bot_comment": bot_comment["body"][:500],
