@@ -29,7 +29,12 @@ def safe_request(url: str, data: bytes | None = None, headers: dict | None = Non
     req = urllib.request.Request(url, data=data, headers=headers or {}, method="POST" if data else "GET")
     try:
         with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as resp:
-            return json.loads(resp.read().decode("utf-8"))
+            raw = resp.read().decode("utf-8")
+            try:
+                return json.loads(raw)
+            except json.JSONDecodeError:
+                print(f"Non-JSON response from {url}: {raw[:500]}", file=sys.stderr)
+                sys.exit(1)
     except urllib.error.HTTPError as e:
         body = e.read().decode("utf-8", errors="replace")[:500]
         print(f"HTTP {e.code} from {url}", file=sys.stderr)
@@ -38,6 +43,8 @@ def safe_request(url: str, data: bytes | None = None, headers: dict | None = Non
             print("Hint: Check your API key is correct and not expired.", file=sys.stderr)
         elif e.code == 403:
             print("Hint: Access denied. Check API key permissions.", file=sys.stderr)
+        elif e.code == 404:
+            print("Hint: Resource not found. The PR may have been closed or deleted.", file=sys.stderr)
         elif e.code == 429:
             print("Hint: Rate limited. Try again later or use a different provider.", file=sys.stderr)
         elif e.code >= 500:
@@ -127,10 +134,10 @@ def get_pr_files(owner: str, repo: str, pr_number: int, token: str) -> list[dict
                 files = json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as e:
             print(f"HTTP {e.code} getting PR files: {e.reason}", file=sys.stderr)
-            break
+            sys.exit(1)
         except urllib.error.URLError as e:
             print(f"Connection error getting PR files: {e.reason}", file=sys.stderr)
-            break
+            sys.exit(1)
 
         if not files:
             break
@@ -170,16 +177,18 @@ def filter_diff(diff: str, files: list[dict], exclude_patterns: str) -> str:
             parts = line.split(" b/", 1)
             current_file = parts[1] if len(parts) > 1 else ""
             skip = current_file in excluded_files
+            if skip:
+                continue
+            filtered_parts.append(line)
+            continue
         if skip:
             continue
-        # Skip binary file diffs
         if line.startswith("Binary files") and "differ" in line:
-            # Remove the last file header we added
-            while filtered_parts and filtered_parts[-1].startswith("diff --git"):
-                filtered_parts.pop()
-                # Also remove subsequent lines for this file header
+            # Remove lines belonging to this binary file's diff header
             while filtered_parts and not filtered_parts[-1].startswith("diff --git"):
                 filtered_parts.pop()
+            if filtered_parts:
+                filtered_parts.pop()  # Remove the diff --git header
             continue
         filtered_parts.append(line)
 
@@ -224,6 +233,12 @@ def call_openai(api_key: str, model: str, prompt: str, diff: str) -> str:
     }).encode("utf-8")
 
     result = safe_request(url, data=body, headers=headers)
+    if "error" in result:
+        print(f"OpenAI API error: {result['error']}", file=sys.stderr)
+        sys.exit(1)
+    if "choices" not in result or not result["choices"]:
+        print(f"Unexpected OpenAI response: {json.dumps(result)[:500]}", file=sys.stderr)
+        sys.exit(1)
     return result["choices"][0]["message"]["content"]
 
 
@@ -252,6 +267,12 @@ def call_anthropic(api_key: str, model: str, prompt: str, diff: str) -> str:
     }).encode("utf-8")
 
     result = safe_request(url, data=body, headers=headers)
+    if "error" in result:
+        print(f"Anthropic API error: {result['error']}", file=sys.stderr)
+        sys.exit(1)
+    if "content" not in result or not result["content"]:
+        print(f"Unexpected Anthropic response: {json.dumps(result)[:500]}", file=sys.stderr)
+        sys.exit(1)
     return result["content"][0]["text"]
 
 
@@ -311,4 +332,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit(1)
+    except Exception as e:
+        print(f"Unexpected error: {type(e).__name__}: {e}", file=sys.stderr)
+        sys.exit(1)
