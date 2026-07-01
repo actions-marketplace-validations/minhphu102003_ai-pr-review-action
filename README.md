@@ -63,7 +63,9 @@ jobs:
 | `model` | No | *(auto)* | Model name (e.g. `gpt-4.1-mini`, `claude-haiku-4-5-20251001`) |
 | `opencode_api_key` | If engine=opencode | - | OpenCode API key |
 | `openai_api_key` | If engine=direct | - | OpenAI API key |
+| `openai_base_url` | No | `https://api.openai.com/v1` | Custom base URL for OpenAI-compatible API |
 | `anthropic_api_key` | If engine=direct | - | Anthropic API key |
+| `anthropic_base_url` | No | `https://api.anthropic.com` | Custom base URL for Anthropic-compatible API |
 | `github_token` | Yes | `${{ github.token }}` | GitHub token for posting comments |
 | `prompt_file` | No | *(built-in)* | Path to custom prompt file in your repo |
 | `exclude` | No | - | Comma-separated glob patterns to exclude (e.g. `docs/**,*.md`) |
@@ -75,6 +77,50 @@ jobs:
 | `opencode` | `opencode/mimo-v2.5-free` |
 | `direct` (OpenAI) | `gpt-4.1-mini` |
 | `direct` (Anthropic) | `claude-haiku-4-5-20251001` |
+
+## Compatible APIs
+
+Use `openai_base_url` or `anthropic_base_url` to connect to any OpenAI/Anthropic-compatible provider:
+
+**OpenRouter:**
+```yaml
+      - uses: minhphu102003/ai-pr-review-action@v0.0.1
+        with:
+          engine: direct
+          model: anthropic/claude-3.5-haiku
+          openai_api_key: ${{ secrets.OPENROUTER_API_KEY }}
+          openai_base_url: https://openrouter.ai/api/v1
+```
+
+**Groq:**
+```yaml
+      - uses: minhphu102003/ai-pr-review-action@v0.0.1
+        with:
+          engine: direct
+          model: llama-3.1-70b-versatile
+          openai_api_key: ${{ secrets.GROQ_API_KEY }}
+          openai_base_url: https://api.groq.com/openai/v1
+```
+
+**Together AI:**
+```yaml
+      - uses: minhphu102003/ai-pr-review-action@v0.0.1
+        with:
+          engine: direct
+          model: meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo
+          openai_api_key: ${{ secrets.TOGETHER_API_KEY }}
+          openai_base_url: https://api.together.xyz/v1
+```
+
+**Ollama (local):**
+```yaml
+      - uses: minhphu102003/ai-pr-review-action@v0.0.1
+        with:
+          engine: direct
+          model: llama3.1
+          openai_api_key: ollama
+          openai_base_url: http://localhost:11434/v1
+```
 
 ## Custom Prompt
 

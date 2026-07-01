@@ -23,8 +23,16 @@ inputs:
     description: 'OpenAI API key (for direct engine)'
     required: false
     default: ''
+  openai_base_url:
+    description: 'Custom base URL for OpenAI-compatible API (e.g. https://openrouter.ai/api/v1, http://localhost:11434/v1)'
+    required: false
+    default: ''
   anthropic_api_key:
     description: 'Anthropic API key (for direct engine)'
+    required: false
+    default: ''
+  anthropic_base_url:
+    description: 'Custom base URL for Anthropic-compatible API'
     required: false
     default: ''
   github_token:
@@ -81,7 +89,9 @@ runs:
       shell: bash
       env:
         OPENAI_API_KEY: ${{ inputs.openai_api_key }}
+        OPENAI_BASE_URL: ${{ inputs.openai_base_url }}
         ANTHROPIC_API_KEY: ${{ inputs.anthropic_api_key }}
+        ANTHROPIC_BASE_URL: ${{ inputs.anthropic_base_url }}
         MODEL: ${{ inputs.model }}
         GITHUB_TOKEN: ${{ inputs.github_token }}
         EXCLUDE: ${{ inputs.exclude }}

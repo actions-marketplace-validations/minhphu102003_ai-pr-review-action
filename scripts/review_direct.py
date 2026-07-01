@@ -126,7 +126,8 @@ def truncate_diff(diff: str, max_chars: int = 100000) -> str:
 
 def call_openai(api_key: str, model: str, prompt: str, diff: str) -> str:
     """Call OpenAI API."""
-    url = "https://api.openai.com/v1/chat/completions"
+    base_url = get_env("OPENAI_BASE_URL") or "https://api.openai.com/v1"
+    url = f"{base_url.rstrip('/')}/chat/completions"
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
@@ -149,7 +150,8 @@ def call_openai(api_key: str, model: str, prompt: str, diff: str) -> str:
 
 def call_anthropic(api_key: str, model: str, prompt: str, diff: str) -> str:
     """Call Anthropic API."""
-    url = "https://api.anthropic.com/v1/messages"
+    base_url = get_env("ANTHROPIC_BASE_URL") or "https://api.anthropic.com"
+    url = f"{base_url.rstrip('/')}/v1/messages"
     headers = {
         "x-api-key": api_key,
         "anthropic-version": "2023-06-01",
