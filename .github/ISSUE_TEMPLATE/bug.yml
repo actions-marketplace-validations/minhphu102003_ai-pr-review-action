@@ -1,0 +1,122 @@
+# https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-githubs-form-schema
+name: Bug Report
+description: Report a bug with AI PR Review Action
+labels:
+  - bug
+  - needs triage
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to report a bug!
+        If this is a security issue, please report it privately via [Security Policy](https://github.com/minhphu102003/ai-pr-review-action/blob/main/SECURITY.md).
+
+  - type: checkboxes
+    attributes:
+      label: Contributing guidelines
+      description: >
+        Make sure you've read the contributing guidelines before proceeding.
+      options:
+        - label: I've read the [contributing guidelines](https://github.com/minhphu102003/ai-pr-review-action/blob/main/CONTRIBUTING.md) and wholeheartedly agree
+          required: true
+
+  - type: checkboxes
+    attributes:
+      label: "I've found a bug, and:"
+      description: |
+        Make sure that your request fulfills all of the following requirements.
+      options:
+        - label: The documentation does not mention anything about my problem
+        - label: There are no open or closed issues that are related to my problem
+
+  - type: dropdown
+    id: engine
+    attributes:
+      label: Engine
+      description: Which engine were you using?
+      options:
+        - opencode
+        - direct (OpenAI)
+        - direct (Anthropic)
+    validations:
+      required: true
+
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      description: >
+        Which model were you using? (e.g. `gpt-4.1-mini`, `claude-haiku-4-5-20251001`, `opencode/mimo-v2.5-free`)
+      placeholder: gpt-4.1-mini
+
+  - type: input
+    id: version
+    attributes:
+      label: Action version
+      description: >
+        Which version of the action? (e.g. `v0.0.6`)
+      placeholder: v0.0.6
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: >
+        Provide a brief description of the bug in 1-2 sentences.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: >
+        Describe precisely what you'd expect to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: >
+        Describe precisely what is actually happening.
+    validations:
+      required: true
+
+  - type: textarea
+    id: workflow
+    attributes:
+      label: YAML workflow
+      description: |
+        Provide the YAML of the workflow that's causing the issue.
+        Make sure to remove any sensitive information (API keys, tokens).
+      render: yaml
+    validations:
+      required: true
+
+  - type: input
+    id: run-url
+    attributes:
+      label: Workflow run URL
+      description: >
+        Enter the URL of the GitHub Action workflow run if public (e.g.
+        `https://github.com/<user>/<repo>/actions/runs/<id>`)
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Workflow logs
+      description: >
+        [Attach](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/attaching-files)
+        the log file of your workflow run. Make sure to remove any sensitive information (API keys, tokens).
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional info
+      description: |
+        Provide any additional information that could be useful.

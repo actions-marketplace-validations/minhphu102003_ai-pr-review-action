@@ -1,0 +1,33 @@
+# https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/syntax-for-githubs-form-schema
+name: Feature Request
+description: Suggest an idea for AI PR Review Action
+labels:
+  - enhancement
+  - needs triage
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What is the feature you want to see?
+      placeholder: Describe your feature request...
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: >
+        Why do you need this feature? What problem does it solve?
+
+  - type: dropdown
+    id: pr
+    attributes:
+      label: Are you willing to submit a PR?
+      description: We accept contributions!
+      options:
+        - "Yes"
+        - "No"
+        - "Maybe"

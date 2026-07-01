@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and Discussions
+    url: https://github.com/minhphu102003/ai-pr-review-action/discussions/new
+    about: Use GitHub Discussions to ask questions or open discussion topics.
+  - name: Documentation
+    url: https://github.com/minhphu102003/ai-pr-review-action#readme
+    about: Read the README for setup instructions and configuration options.
