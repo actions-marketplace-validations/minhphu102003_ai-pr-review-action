@@ -17,6 +17,12 @@ import urllib.request
 HTTP_TIMEOUT = int(os.environ.get("HTTP_TIMEOUT", "120"))
 REVIEW_SIGNATURE = "*AI Review by ai-pr-review-action*"
 
+# Mask API keys in GitHub Actions logs to prevent accidental exposure.
+for _key in ("OPENAI_API_KEY", "ANTHROPIC_API_KEY"):
+    _val = os.environ.get(_key, "")
+    if _val:
+        print(f"::add-mask::{_val}")
+
 # Known model prefixes for Anthropic (no public models API).
 # OpenAI-compatible APIs are validated via GET /v1/models instead.
 _ANTHROPIC_PREFIXES = ("claude-",)

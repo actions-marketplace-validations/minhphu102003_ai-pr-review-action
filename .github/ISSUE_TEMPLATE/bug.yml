@@ -55,8 +55,8 @@ body:
     attributes:
       label: Action version
       description: >
-        Which version of the action? (e.g. `v0.0.7`)
-      placeholder: v0.0.7
+        Which version of the action? (e.g. `v0.0.8`)
+      placeholder: v0.0.8
     validations:
       required: true
 

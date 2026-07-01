@@ -30,25 +30,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: minhphu102003/ai-pr-review-action@v0.0.7
+      - uses: minhphu102003/ai-pr-review-action@v0.0.8
         with:
           opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
 ```
 
+> **Note:** The OpenCode engine may commit and push changes to your branch. For safety, use on non-default branches or draft PRs.
+
 ### Direct Anthropic API (Haiku — fast, cheap, 200k context)
 
 ```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.7
+      - uses: minhphu102003/ai-pr-review-action@v0.0.8
         with:
           engine: direct
           model: claude-haiku-4-5-20251001
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
 
-### Direct OpenAI API (GPT-4.1 Mini — fast, cheap, 128k context)
+### Direct OpenAI API (GPT-4.1 Mini — fast, cheap, 1M context)
 
 ```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.7
+      - uses: minhphu102003/ai-pr-review-action@v0.0.8
         with:
           engine: direct
           model: gpt-4.1-mini
@@ -61,15 +63,16 @@ jobs:
 |-------|----------|---------|-------------|
 | `engine` | No | `opencode` | LLM engine: `opencode` or `direct` |
 | `model` | No | *(auto)* | Model name (e.g. `gpt-4.1-mini`, `claude-haiku-4-5-20251001`) |
-| `opencode_api_key` | If engine=opencode | - | OpenCode API key |
+| `opencode_api_key` | If engine=opencode | - | OpenCode API key (passed as env var to OpenCode CLI) |
 | `openai_api_key` | If engine=direct | - | OpenAI API key |
-| `openai_base_url` | No | `https://api.openai.com/v1` | Custom base URL for OpenAI-compatible API |
+| `openai_base_url` | No | - | Custom base URL for OpenAI-compatible API |
 | `anthropic_api_key` | If engine=direct | - | Anthropic API key |
-| `anthropic_base_url` | No | `https://api.anthropic.com` | Custom base URL for Anthropic-compatible API |
+| `anthropic_base_url` | No | - | Custom base URL for Anthropic-compatible API |
 | `github_token` | Yes | `${{ github.token }}` | GitHub token for posting comments |
 | `prompt_file` | No | *(built-in)* | Path to custom prompt file in your repo |
-| `exclude` | No | - | Comma-separated glob patterns to exclude (e.g. `docs/**,*.md`) |
-| `update_comment` | No | `true` | Update existing review comment instead of creating a new one |
+| `exclude` | No | - | Comma-separated glob patterns to exclude (e.g. `docs/**,*.md`). *Direct engine only.* |
+| `update_comment` | No | `true` | Update existing review comment instead of creating a new one. *Direct engine only.* |
+| `share` | No | *(auto)* | Share OpenCode session link in PR comment. *OpenCode engine only.* |
 
 ### Default models per engine
 
@@ -85,7 +88,7 @@ Use `openai_base_url` or `anthropic_base_url` to connect to any OpenAI/Anthropic
 
 **OpenRouter:**
 ```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.7
+      - uses: minhphu102003/ai-pr-review-action@v0.0.8
         with:
           engine: direct
           model: anthropic/claude-3.5-haiku
@@ -95,7 +98,7 @@ Use `openai_base_url` or `anthropic_base_url` to connect to any OpenAI/Anthropic
 
 **Groq:**
 ```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.7
+      - uses: minhphu102003/ai-pr-review-action@v0.0.8
         with:
           engine: direct
           model: llama-3.1-70b-versatile
@@ -105,7 +108,7 @@ Use `openai_base_url` or `anthropic_base_url` to connect to any OpenAI/Anthropic
 
 **Together AI:**
 ```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.7
+      - uses: minhphu102003/ai-pr-review-action@v0.0.8
         with:
           engine: direct
           model: meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo
@@ -115,7 +118,7 @@ Use `openai_base_url` or `anthropic_base_url` to connect to any OpenAI/Anthropic
 
 **Ollama (local):**
 ```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.7
+      - uses: minhphu102003/ai-pr-review-action@v0.0.8
         with:
           engine: direct
           model: llama3.1
@@ -131,7 +134,7 @@ The action includes a built-in prompt optimized for thorough code review. You ca
 
 **Option 2:** Specify a custom path:
 ```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.0.7
+      - uses: minhphu102003/ai-pr-review-action@v0.0.8
         with:
           prompt_file: my-custom-review-prompt.txt
           opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
@@ -169,7 +172,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: minhphu102003/ai-pr-review-action@v0.0.7
+      - uses: minhphu102003/ai-pr-review-action@v0.0.8
         with:
           opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
 
@@ -186,7 +189,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: minhphu102003/ai-pr-review-action@v0.0.7
+      - uses: minhphu102003/ai-pr-review-action@v0.0.8
         with:
           opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
 ```
@@ -219,6 +222,22 @@ When a PR is opened from a fork, the default `github.token` has read-only permis
 - GitHub Actions runner (ubuntu-latest)
 - Python 3.10+ (for direct engine only — pre-installed on GitHub-hosted runners)
 - API key for your chosen engine
+
+## Security
+
+> **IMPORTANT:** Always store API keys as [GitHub Actions secrets](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions). Never hardcode keys in your workflow file.
+
+```yaml
+# CORRECT — keys stored as secrets
+with:
+  opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
+
+# WRONG — keys exposed in plain text
+with:
+  opencode_api_key: "sk-abc123..."
+```
+
+The action automatically masks API key values in workflow logs. Keys are passed as environment variables to the LLM engine and are never printed or stored.
 
 ## License
 

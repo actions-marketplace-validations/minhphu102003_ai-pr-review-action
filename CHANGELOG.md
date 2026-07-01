@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.0.8
+
+- Fix OpenCode action reference: `@v1` tag does not exist, pin to `@v1.17.12`
+- Add `share` input to toggle OpenCode session link in PR comment
+- Mask API keys in GitHub Actions logs via `::add-mask::`
+- Add Security section to README: require GitHub secrets, never hardcode keys
+- Add OpenCode auto-commit warning to README
+- Update action.yml input descriptions: warn against hardcoding API keys
+- Fix README: `openai_base_url` and `anthropic_base_url` defaults (empty, not full URL)
+- Fix README: mark `exclude` and `update_comment` as direct-engine-only inputs
+- Fix README: GPT-4.1 Mini context size (1M, not 128k)
+- Add note that `opencode_api_key` is passed as env var to OpenCode CLI
+
 ## v0.0.7
 
 - Validate model names via GET /v1/models for OpenAI-compatible APIs

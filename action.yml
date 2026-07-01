@@ -16,11 +16,11 @@ inputs:
     required: false
     default: ''
   opencode_api_key:
-    description: 'API key for OpenCode engine'
+    description: 'API key for OpenCode engine. Store as GitHub secret, do not hardcode.'
     required: false
     default: ''
   openai_api_key:
-    description: 'OpenAI API key (for direct engine)'
+    description: 'OpenAI API key (for direct engine). Store as GitHub secret, do not hardcode.'
     required: false
     default: ''
   openai_base_url:
@@ -28,7 +28,7 @@ inputs:
     required: false
     default: ''
   anthropic_api_key:
-    description: 'Anthropic API key (for direct engine)'
+    description: 'Anthropic API key (for direct engine). Store as GitHub secret, do not hardcode.'
     required: false
     default: ''
   anthropic_base_url:
@@ -51,6 +51,10 @@ inputs:
     description: 'Update existing review comment instead of creating a new one'
     required: false
     default: 'true'
+  share:
+    description: 'Share OpenCode session link in PR comment (opencode engine only). Defaults to true for public repos.'
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -104,7 +108,7 @@ runs:
     # Engine: OpenCode (default)
     - name: Review with OpenCode
       if: inputs.engine == 'opencode'
-      uses: anomalyco/opencode/github@v1
+      uses: anomalyco/opencode/github@v1.17.12
       env:
         OPENCODE_API_KEY: ${{ inputs.opencode_api_key }}
         GITHUB_TOKEN: ${{ inputs.github_token }}
@@ -112,6 +116,7 @@ runs:
         model: ${{ inputs.model || 'opencode/mimo-v2.5-free' }}
         use_github_token: true
         prompt: ${{ steps.resolve-prompt.outputs.PROMPT }}
+        share: ${{ inputs.share }}
 
     # Engine: Direct LLM API (OpenAI or Anthropic)
     - name: Review with direct LLM API
