@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.0.7
+
+- Validate model names via GET /v1/models for OpenAI-compatible APIs
+- Suggest closest model name on typo via edit distance
+- Prefix-based model check for Anthropic (no public models API)
+- Add context-aware error hints for HTTP 400 and 404 (LLM vs GitHub)
+- Graceful fallback if /v1/models endpoint unavailable
+
+## v0.0.6
+
+- Add GitHub issue templates (bug report, feature request) with YAML forms
+- Add PR template with checklist
+- Add template chooser config (disable blank issues, link to Discussions)
+- Add SECURITY.md
+
 ## v0.0.5
 
 - Use sequenceDiagram as default Mermaid diagram type
