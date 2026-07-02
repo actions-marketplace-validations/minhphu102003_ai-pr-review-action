@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.1
+
+- Strip model preamble: remove leading text before `## PR Review` heading in both OpenCode and direct engine paths
+- OpenCode engine: `post_inline.py` now always updates summary comment when body changes (preamble or Key Issues stripped)
+- Direct engine: `sanitize_review()` strips preamble before posting
+
 ## v0.1.0
 
 - Issue Summary table: LLM generates a summary table with severity, file, line, and description before Key Issues section
