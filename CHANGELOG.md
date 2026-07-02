@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.1.3
+
+- Fix `has_bot_reviews` false positive: remove `body == ""` check that blocked inline comments on empty bot reviews
+- Add retry logic (429/5xx with exponential backoff) to `_graphql()` — was the only HTTP call without retry
+- Fix `filter_diff` early return: `and` → `or` to skip processing when no excluded files
+- Fix `extract_issues_json` / `extract_replies_json` to preserve text after JSON blocks instead of discarding
+
 ## v0.1.2
 
 - Fix shell syntax `${ 32768 }` bug in action.yml prompt size warning

@@ -303,7 +303,7 @@ def filter_diff(diff: str, files: list[dict], exclude_patterns: str) -> str:
                     excluded_files.add(filename)
                     break
 
-    if not excluded_files and not diff:
+    if not excluded_files or not diff:
         return diff
 
     filtered_parts = []

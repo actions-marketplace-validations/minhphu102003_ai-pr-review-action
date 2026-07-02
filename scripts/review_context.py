@@ -153,20 +153,39 @@ def safe_request(url: str, data: bytes | None = None, headers: dict | None = Non
 # GraphQL
 # ---------------------------------------------------------------------------
 
-def _graphql(token: str, query: str, variables: dict) -> dict:
-    """Execute a GraphQL query against the GitHub API."""
+def _graphql(token: str, query: str, variables: dict, max_retries: int = 3) -> dict:
+    """Execute a GraphQL query against the GitHub API with retry."""
     payload = json.dumps({"query": query, "variables": variables}).encode("utf-8")
     headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
         "User-Agent": "ai-pr-review-action",
     }
-    req = urllib.request.Request(GRAPHQL_URL, data=payload, headers=headers, method="POST")
-    with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as resp:
-        result = json.loads(resp.read().decode("utf-8"))
-    if "errors" in result:
-        raise RuntimeError(f"GraphQL errors: {json.dumps(result['errors'])}")
-    return result
+    for attempt in range(max_retries + 1):
+        req = urllib.request.Request(GRAPHQL_URL, data=payload, headers=headers, method="POST")
+        try:
+            with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as resp:
+                result = json.loads(resp.read().decode("utf-8"))
+            if "errors" in result:
+                raise RuntimeError(f"GraphQL errors: {json.dumps(result['errors'])}")
+            return result
+        except urllib.error.HTTPError as e:
+            if e.code == 429 or e.code >= 500:
+                if attempt < max_retries:
+                    retry_after = e.headers.get("Retry-After")
+                    delay = int(retry_after) if retry_after and retry_after.isdigit() else 2 ** (attempt + 1)
+                    print(f"GraphQL HTTP {e.code}, retrying in {delay}s (attempt {attempt + 1}/{max_retries})...", file=sys.stderr)
+                    time.sleep(delay)
+                    continue
+            raise
+        except (urllib.error.URLError, TimeoutError) as e:
+            if attempt < max_retries:
+                delay = 2 ** (attempt + 1)
+                print(f"GraphQL error: {e}, retrying in {delay}s (attempt {attempt + 1}/{max_retries})...", file=sys.stderr)
+                time.sleep(delay)
+                continue
+            raise
+    raise RuntimeError(f"All {max_retries} retry attempts exhausted for GraphQL")
 
 
 def fetch_unresolved_threads(owner: str, repo: str, pr_number: int, token: str) -> list[dict]:
@@ -428,7 +447,7 @@ def has_bot_reviews(owner: str, repo: str, pr_number: int, token: str) -> bool:
         user = review.get("user", {}).get("login", "")
         body = review.get("body", "")
         if user == "github-actions[bot]" and review.get("state") == "COMMENTED":
-            if REVIEW_SIGNATURE in body or body == "":
+            if REVIEW_SIGNATURE in body:
                 return True
     return False
 
@@ -475,7 +494,7 @@ def extract_issues_json(review_text: str) -> tuple[str, list[dict] | None]:
         issues = json.loads(json_str)
         if not isinstance(issues, list):
             return review_text, None
-        clean_text = review_text[: match.start()].rstrip()
+        clean_text = (review_text[:match.start()] + review_text[match.end():]).rstrip()
         return clean_text, issues
     except (json.JSONDecodeError, ValueError) as e:
         print(f"WARNING: Failed to parse issues JSON: {e}", file=sys.stderr)
@@ -495,7 +514,7 @@ def extract_replies_json(review_text: str) -> tuple[str, list[dict] | None]:
         replies = json.loads(json_str)
         if not isinstance(replies, list):
             return review_text, None
-        clean_text = review_text[: match.start()].rstrip()
+        clean_text = (review_text[:match.start()] + review_text[match.end():]).rstrip()
         return clean_text, replies
     except (json.JSONDecodeError, ValueError) as e:
         print(f"WARNING: Failed to parse replies JSON: {e}", file=sys.stderr)
