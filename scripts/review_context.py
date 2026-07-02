@@ -540,16 +540,6 @@ def post_inline_comments(
     if not issues or not commit_sha:
         return False
 
-    # Check if bot already posted inline comments (prevent duplicates)
-    if has_bot_reviews(owner, repo, pr_number, token):
-        print("Bot already posted inline comments, skipping to prevent duplicates")
-        return False
-
-    # Delete existing review if updating
-    review_id = find_existing_review(owner, repo, pr_number, token)
-    if review_id:
-        delete_review(owner, repo, pr_number, review_id, token)
-
     comments = []
     for issue in issues:
         file_path = issue.get("file_path", "")
