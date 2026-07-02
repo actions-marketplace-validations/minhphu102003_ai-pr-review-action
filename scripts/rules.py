@@ -234,6 +234,21 @@ def post_pr_comment(owner: str, repo: str, pr_number: int, token: str, body: str
         print(f"WARNING: Could not post comment: {e}", file=sys.stderr)
 
 
+def get_pr_head_branch(owner: str, repo: str, pr_number: int, token: str) -> str | None:
+    """Get the head branch name of a PR."""
+    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}"
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "ai-pr-review-action",
+    }
+    try:
+        result = safe_request(url, headers=headers)
+        return result.get("head", {}).get("ref")
+    except (urllib.error.HTTPError, urllib.error.URLError):
+        return None
+
+
 # ---------------------------------------------------------------------------
 # Rules storage
 # ---------------------------------------------------------------------------
@@ -457,7 +472,8 @@ def process_remember_from_comment(owner: str, repo: str, pr_number: int, token: 
     }
     rules.append(new_rule)
 
-    if save_rules(owner, repo, token, rules, sha):
+    branch = get_pr_head_branch(owner, repo, pr_number, token)
+    if save_rules(owner, repo, token, rules, sha, branch=branch):
         print(f"Rule extracted and saved: {new_rule['id']} — {rule_text}")
         return True
     return False
@@ -552,8 +568,9 @@ def main_remember():
     }
     rules.append(new_rule)
 
-    # Save
-    if save_rules(owner, repo_name, token, rules, sha):
+    # Save to PR branch (not main) to avoid conflicts
+    branch = get_pr_head_branch(owner, repo_name, pr_number, token) if pr_number else None
+    if save_rules(owner, repo_name, token, rules, sha, branch=branch):
         print(f"Rule added: {new_rule['id']} — {rule_text}")
         # React to confirm
         if comment_id_str:
