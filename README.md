@@ -8,9 +8,11 @@ Free AI-powered PR review using [OpenCode](https://opencode.ai) free model. Anti
 
 ## Preview
 
-| PR Overview | Issue Summary | Inline Comments |
-|:-----------:|:-------------:|:---------------:|
-| ![PR Overview](pr-overview.png) | ![Issue Summary](issue-summary.png) | ![Inline Comment](inline-comment.png) |
+![PR Overview](pr-overview.png)
+
+![Issue Summary](issue-summary.png)
+
+![Inline Comment](inline-comment.png)
 
 ## Quick Start
 
