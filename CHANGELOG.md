@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.4
+
+- Fix: guard duplicate remember processing for direct engine (`action.yml`)
+- Fix: add `mask_secrets()` in CLI mode for defense-in-depth (`review_context.py`)
+- Fix: `is_collaborator()` now fails closed on non-404 HTTP errors (`rules.py`)
+
 ## v0.2.3
 
 - Fix rules commit targeting main branch instead of PR branch (caused merge conflicts)

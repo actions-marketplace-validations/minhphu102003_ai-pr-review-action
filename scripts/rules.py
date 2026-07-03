@@ -193,9 +193,9 @@ def is_collaborator(owner: str, repo: str, username: str, token: str) -> bool:
     except urllib.error.HTTPError as e:
         if e.code == 404:
             return False
-        # For other errors (403, 5xx), fail open
-        print(f"WARNING: Collaborator check failed ({e.code}), assuming collaborator", file=sys.stderr)
-        return True
+        # Fail closed for security — deny access if we can't verify
+        print(f"WARNING: Collaborator check failed (HTTP {e.code}), denying access", file=sys.stderr)
+        return False
     except (urllib.error.URLError, TimeoutError) as e:
         print(f"WARNING: Collaborator check error: {e}, assuming collaborator", file=sys.stderr)
         return True

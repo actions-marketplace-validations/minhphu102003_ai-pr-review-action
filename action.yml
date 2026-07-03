@@ -279,6 +279,7 @@ runs:
     # Extract and save remember rule directly from comment body
     - name: Process remember rule
       if: >-
+        inputs.engine == 'opencode' &&
         github.event_name == 'issue_comment' &&
         contains(github.event.comment.body, '@synaptic-ai remember')
       shell: bash

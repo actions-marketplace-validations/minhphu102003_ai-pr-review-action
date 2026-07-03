@@ -593,6 +593,7 @@ def post_inline_comments(
 
 def main_cli():
     """CLI entry point for fetching review context."""
+    mask_secrets()
     import argparse
 
     parser = argparse.ArgumentParser(description="Fetch review context for PR")
