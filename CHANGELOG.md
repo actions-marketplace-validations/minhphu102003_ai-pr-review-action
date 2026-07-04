@@ -1,9 +1,9 @@
 # Changelog
 
-## v0.3.0
+## v0.2.7
 
-- Feat: summary comment now updates in-place on re-review instead of creating a new comment (`post_inline.py`)
-- Feat: new `delete_issue_comment()` helper for cleaning up stale OpenCode-created comments (`review_context.py`)
+- Fix: summary comment now updates in-place on re-review instead of duplicating (`post_inline.py`)
+- Fix: new `delete_issue_comment()` helper for cleaning up stale OpenCode-created comments (`review_context.py`)
 
 ## v0.2.6
 
