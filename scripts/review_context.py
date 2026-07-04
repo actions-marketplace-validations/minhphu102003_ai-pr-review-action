@@ -536,11 +536,20 @@ def post_inline_comments(
     owner: str, repo: str, pr_number: int, token: str,
     issues: list[dict], commit_sha: str,
 ) -> bool:
-    """Post inline review comments via PR Reviews API. Returns True on success."""
+    """Post inline review comments individually. Skips comments with invalid line numbers.
+    Returns True if at least one comment was posted."""
     if not issues or not commit_sha:
         return False
 
-    comments = []
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github.v3+json",
+        "User-Agent": "ai-pr-review-action",
+    }
+
+    posted = 0
+    skipped = 0
+
     for issue in issues:
         file_path = issue.get("file_path", "")
         line = issue.get("line")
@@ -555,36 +564,27 @@ def post_inline_comments(
         severity_icon = {"CAUTION": "\U0001f534", "WARNING": "\U0001f7e1", "NOTE": "\U0001f535"}.get(severity, "\U0001f535")
         comment_body = f"{severity_icon} **[{severity_label}] {title}**\n\n{body}"
 
-        comments.append({
+        url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/comments"
+        payload = json.dumps({
+            "body": comment_body,
+            "commit_id": commit_sha,
             "path": file_path,
             "line": int(line),
             "side": "RIGHT",
-            "body": comment_body,
-        })
+        }).encode("utf-8")
 
-    if not comments:
-        return False
+        try:
+            safe_request(url, data=payload, headers=headers)
+            posted += 1
+        except urllib.error.HTTPError as e:
+            skipped += 1
+            print(f"WARNING: Skipped inline comment on {file_path}:{line} ({e.code}). Line may be outside the diff.", file=sys.stderr)
 
-    url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/reviews"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/vnd.github.v3+json",
-        "User-Agent": "ai-pr-review-action",
-    }
-    payload = json.dumps({
-        "body": "",
-        "event": "COMMENT",
-        "comments": comments,
-        "commit_id": commit_sha,
-    }).encode("utf-8")
-
-    try:
-        result = safe_request(url, data=payload, headers=headers)
-        print(f"Inline review posted: {result.get('html_url', 'ok')}")
+    if posted > 0:
+        print(f"Posted {posted} inline comment(s), skipped {skipped}")
         return True
-    except urllib.error.HTTPError as e:
-        print(f"WARNING: Inline review failed ({e.code}). Comments may reference lines outside the diff.", file=sys.stderr)
-        return False
+    print(f"No inline comments posted (skipped {skipped})", file=sys.stderr)
+    return False
 
 
 # ---------------------------------------------------------------------------

@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: minhphu102003/ai-pr-review-action@v0.2.4
+      - uses: minhphu102003/ai-pr-review-action@v0.2.5
         with:
           opencode_api_key: ${{ secrets.OPENCODE_API_KEY }}
 ```
@@ -48,7 +48,7 @@ jobs:
 ### Direct OpenAI
 
 ```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.2.4
+      - uses: minhphu102003/ai-pr-review-action@v0.2.5
         with:
           engine: direct
           model: gpt-4.1-mini
@@ -58,7 +58,7 @@ jobs:
 ### Direct Anthropic
 
 ```yaml
-      - uses: minhphu102003/ai-pr-review-action@v0.2.4
+      - uses: minhphu102003/ai-pr-review-action@v0.2.5
         with:
           engine: direct
           model: claude-haiku-4-5-20251001
@@ -167,6 +167,8 @@ Rules are injected into the LLM prompt as behavioral constraints. If a PR violat
 **Fork PRs:** Default `github.token` is read-only on forks. Use `pull_request_target` — see [security implications](https://securitylab.github.com/research/github-actions-preventing-pwn-requests/).
 
 **Cost control:** Use free-tier models (`opencode/mimo-v2.5-free`), lightweight models (`gpt-4.1-mini`), or add `paths-ignore` to skip docs/lock files.
+
+**Note:** OpenCode's internal title agent may still use a paid model (`gpt-5.4-nano`) regardless of your configured model. If you see a `No payment method` 401 error in logs but the review still completes, it's from this non-critical step. Add a payment method at your [OpenCode workspace billing page](https://opencode.ai/workspace) to suppress it.
 
 ## License
 

@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.5
+
+- Fix: post inline comments individually to handle 422 gracefully (`review_context.py`)
+- Docs: add billing note for OpenCode title agent error in README
+
 ## v0.2.4
 
 - Fix: guard duplicate remember processing for direct engine (`action.yml`)
