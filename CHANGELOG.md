@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.6
+
+- Fix: prevent OpenCode from hanging on `external_directory` permission prompt in CI (`action.yml`)
+
 ## v0.2.5
 
 - Fix: post inline comments individually to handle 422 gracefully (`review_context.py`)

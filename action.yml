@@ -261,6 +261,8 @@ runs:
       env:
         OPENCODE_API_KEY: ${{ inputs.opencode_api_key }}
         GITHUB_TOKEN: ${{ inputs.github_token }}
+        OPENCODE_CONFIG_CONTENT: >
+          {"permission":{"external_directory":"allow","bash":"allow","read":"allow","edit":"deny"}}
       with:
         model: ${{ inputs.model || 'opencode/mimo-v2.5-free' }}
         use_github_token: true
